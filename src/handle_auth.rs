@@ -1,7 +1,7 @@
 use crate::setup_oauth_client;
 use crate::TokenStore;
 use dotenv::dotenv;
-use google_calendar3::yup_oauth2;
+// use google_calendar3::yup_oauth2;
 use log::{error, info};
 use oauth2::reqwest::async_http_client;
 use oauth2::{AuthorizationCode, CsrfToken, Scope};
@@ -11,14 +11,10 @@ use std::env;
 use std::sync::Arc;
 use tokio::sync::{oneshot, Mutex};
 use warp::Filter;
-// use oauth2::ClientId;
-// use oauth2::ClientSecret;
 
 pub struct ServerConfig {
     host: [u8; 4],
     pub port: u16,
-    pub application_secret: yup_oauth2::ApplicationSecret,
-    pub config_dir: String,
 }
 
 impl ServerConfig {
@@ -28,20 +24,12 @@ impl ServerConfig {
             .unwrap_or_else(|_| "8080".to_string())
             .parse::<u16>()?;
         let host = [127, 0, 0, 1];
-        let client_id = env::var("GOOGLE_CLIENT_ID")?;
-        let client_secret = env::var("GOOGLE_CLIENT_SECRET")?;
-        let application_secret = yup_oauth2::ApplicationSecret {
-            client_id,
-            client_secret,
-            ..Default::default()
-        };
-        let config_dir = "~/.google-service-cli".to_string(); // Replace with your desired config directory
 
         Ok(ServerConfig {
             host,
             port,
-            application_secret,
-            config_dir,
+            // application_secret,
+            // config_dir,
         })
     }
 }
@@ -101,9 +89,6 @@ pub async fn handle_auth(
     tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
 
     info!("Server started successfully");
-
-    // Start the server in the background
-    // let server_handle = tokio::spawn(server);
 
     let (auth_url, _csrf_token) = client
         .authorize_url(CsrfToken::new_random)

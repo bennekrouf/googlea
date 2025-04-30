@@ -94,4 +94,10 @@ impl TokenStore {
             Err("No token found".into())
         }
     }
+
+    pub fn remove_token(&self, user_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+        self.db.remove(user_id.as_bytes())?;
+        self.db.flush()?;
+        Ok(())
+    }
 }

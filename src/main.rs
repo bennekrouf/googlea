@@ -1,17 +1,20 @@
 mod create_event;
 mod handle_auth;
-mod token_handler; // Import your token handler module
+mod token_handler;
+mod handle_logout;
 
 use crate::create_event::create_event;
 use crate::handle_auth::handle_auth;
+use crate::handle_logout::handle_logout;
+
 use dotenv::dotenv;
 use env_logger::{Builder, Env};
 use handle_auth::ServerConfig;
 use oauth2::{basic::BasicClient, AuthUrl, ClientId, ClientSecret, RedirectUrl, TokenUrl};
 use std::env;
 use token_handler::TokenStore;
-// use rustls::crypto::CryptoProvider;
 use rustls::crypto::ring::default_provider;
+use log::info;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -22,8 +25,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     provider
         .install_default()
         .expect("Failed to install crypto provider");
-    // Install the default crypto provider before any TLS operations
-    // CryptoProvider::install_default().expect("Failed to install crypto provider");
 
     let token_store = TokenStore::new()?;
     let mut args = std::env::args().skip(1);
@@ -44,10 +45,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
+        Some("logout") => {
+            info!("Processing logout command");
+            handle_logout(&token_store, "default_user").await?
+        },
         _ => {
             println!("Usage:");
             println!("  Authenticate: cargo run -- auth");
             println!("  Create event: cargo run -- create-event \"Your event description\"");
+            println!("  Logout:       cargo run -- logout");
         }
     }
     Ok(())
